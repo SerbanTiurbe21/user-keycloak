@@ -18,7 +18,8 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class KeycloakUserServiceImpl implements KeycloakUserService{
-    private final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
+    private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
+    private static final int STATUS_CREATED = 201;
     private final Keycloak keycloak;
     @Value("${keycloak.realm}")
     private String realm;
@@ -26,21 +27,16 @@ public class KeycloakUserServiceImpl implements KeycloakUserService{
     @Override
     public User createUser(User user) {
         UserRepresentation userRepresentation = getUserRepresentation(user);
-
         UsersResource usersResource = getUsersResource();
 
-        Response response = usersResource.create(userRepresentation);
-
-        if(response.getStatus() == 201){
-            List<UserRepresentation> representationList = usersResource.searchByUsername(user.getUsername(), true);
-            if(!representationList.isEmpty()){
-                UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation2 -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
-                if(userRepresentation1 != null){
-                    emailVerification(userRepresentation1.getId());
+        try (Response response = usersResource.create(userRepresentation)) {
+            if (response.getStatus() == STATUS_CREATED) {
+                List<UserRepresentation> representationList = usersResource.searchByUsername(user.getUsername(), true);
+                if (!representationList.isEmpty()) {
+                    representationList.stream().filter(userRepresentation2 -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().ifPresent(userRepresentation1 -> emailVerification(userRepresentation1.getId()));
                 }
-
+                return user;
             }
-            return user;
         }
 
         return null;
@@ -90,7 +86,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService{
     @Override
     public void updatePassword(String userId) {
         UserResource userResource = getUserResource(userId);
-        userResource.executeActionsEmail(List.of("UPDATE_PASSWORD"));
+        userResource.executeActionsEmail(List.of(UPDATE_PASSWORD));
     }
 
     @Override

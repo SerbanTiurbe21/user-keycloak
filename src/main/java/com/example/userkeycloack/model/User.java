@@ -1,7 +1,6 @@
 package com.example.userkeycloack.model;
 
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 import org.springframework.lang.NonNull;
 
 @Data
