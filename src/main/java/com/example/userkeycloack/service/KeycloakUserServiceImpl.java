@@ -1,6 +1,9 @@
 package com.example.userkeycloack.service;
 
+import com.example.userkeycloack.exception.UserDeletionException;
+import com.example.userkeycloack.exception.UserNotFoundException;
 import com.example.userkeycloack.model.User;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
@@ -17,30 +20,12 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class KeycloakUserServiceImpl implements KeycloakUserService{
+public class KeycloakUserServiceImpl implements KeycloakUserService {
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
     private static final int STATUS_CREATED = 201;
     private final Keycloak keycloak;
     @Value("${keycloak.realm}")
     private String realm;
-
-    @Override
-    public User createUser(User user) {
-        UserRepresentation userRepresentation = getUserRepresentation(user);
-        UsersResource usersResource = getUsersResource();
-
-        try (Response response = usersResource.create(userRepresentation)) {
-            if (response.getStatus() == STATUS_CREATED) {
-                List<UserRepresentation> representationList = usersResource.searchByUsername(user.getUsername(), true);
-                if (!representationList.isEmpty()) {
-                    representationList.stream().filter(userRepresentation2 -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().ifPresent(userRepresentation1 -> emailVerification(userRepresentation1.getId()));
-                }
-                return user;
-            }
-        }
-
-        return null;
-    }
 
     private static UserRepresentation getUserRepresentation(User user) {
         UserRepresentation userRepresentation = new UserRepresentation();
@@ -72,9 +57,33 @@ public class KeycloakUserServiceImpl implements KeycloakUserService{
     }
 
     @Override
+    public User createUser(User user) {
+        UserRepresentation userRepresentation = getUserRepresentation(user);
+        UsersResource usersResource = getUsersResource();
+
+        try (Response response = usersResource.create(userRepresentation)) {
+            if (response.getStatus() == STATUS_CREATED) {
+                List<UserRepresentation> representationList = usersResource.searchByUsername(user.getUsername(), true);
+                if (!representationList.isEmpty()) {
+                    representationList.stream().filter(userRepresentation2 -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().ifPresent(userRepresentation1 -> emailVerification(userRepresentation1.getId()));
+                }
+                return user;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public void deleteUserById(String userId) {
         UsersResource usersResource = getUsersResource();
-        usersResource.delete(userId);
+        try {
+            usersResource.get(userId).remove();
+        } catch (NotFoundException e) {
+            throw new UserNotFoundException("User: "+ userId + "not found");
+        } catch (Exception e) {
+            throw new UserDeletionException("Error deleting user");
+        }
     }
 
     @Override
@@ -94,9 +103,9 @@ public class KeycloakUserServiceImpl implements KeycloakUserService{
         UsersResource usersResource = getUsersResource();
         List<UserRepresentation> userRepresentations = usersResource.searchByUsername(username, true);
 
-        UserRepresentation userRepresentation = userRepresentations.stream().findFirst().orElseThrow(() -> new RuntimeException("User not found"));
+        UserRepresentation userRepresentation = userRepresentations.stream().findFirst().orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if(userRepresentation != null){
+        if (userRepresentation != null) {
             UserResource userResource = getUserResource(userRepresentation.getId());
             userResource.executeActionsEmail(List.of(UPDATE_PASSWORD));
         }

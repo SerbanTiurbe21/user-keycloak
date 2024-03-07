@@ -20,15 +20,16 @@ public class ReactiveSecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-                .csrf().disable() // Disable CSRF protection for a stateless API
+                .csrf().disable()
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/eureka/**").permitAll() // Permit all requests to Eureka endpoints
+                        .pathMatchers("/eureka/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        .anyExchange().authenticated() // Require authentication for all other requests
+                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                        .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthConverter) // Use the JWT converter
+                                .jwtAuthenticationConverter(jwtAuthConverter)
                         )
                 );
 

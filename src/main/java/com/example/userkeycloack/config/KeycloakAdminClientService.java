@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class KeycloakAdminClientService {
-
     @Value("${keycloak.adminClientId}")
     private String adminClientId;
 
@@ -23,7 +22,7 @@ public class KeycloakAdminClientService {
     private String realm;
 
     @Bean
-    public Keycloak keycloak(){
+    public Keycloak keycloak() {
         return KeycloakBuilder.builder()
                 .serverUrl(authServerUrl)
                 .realm(realm)
