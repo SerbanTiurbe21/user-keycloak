@@ -1,5 +1,7 @@
 package com.example.userkeycloack.service;
 
+import com.example.userkeycloack.exception.InvalidPasswordException;
+import com.example.userkeycloack.exception.UserCreationException;
 import com.example.userkeycloack.exception.UserDeletionException;
 import com.example.userkeycloack.exception.UserNotFoundException;
 import com.example.userkeycloack.model.User;
@@ -58,6 +60,10 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
 
     @Override
     public User createUser(User user) {
+        if (user.getPassword().equals(user.getEmail()) || user.getPassword().equals(user.getUsername()) || user.getPassword().equals(user.getFirstName()) || user.getPassword().equals(user.getLastName())) {
+            throw new InvalidPasswordException("Password should not be the same as the username, first name, last name or email");
+        }
+
         UserRepresentation userRepresentation = getUserRepresentation(user);
         UsersResource usersResource = getUsersResource();
 
@@ -68,10 +74,12 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
                     representationList.stream().filter(userRepresentation2 -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().ifPresent(userRepresentation1 -> emailVerification(userRepresentation1.getId()));
                 }
                 return user;
+            } else {
+                throw new UserCreationException("Error creating user, status: " + response.getStatus());
             }
+        } catch (Exception e) {
+            throw new UserCreationException("Exception occurred while creating user: " + e.getMessage());
         }
-
-        return null;
     }
 
     @Override
@@ -80,7 +88,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         try {
             usersResource.get(userId).remove();
         } catch (NotFoundException e) {
-            throw new UserNotFoundException("User: "+ userId + "not found");
+            throw new UserNotFoundException("User: " + userId + "not found");
         } catch (Exception e) {
             throw new UserDeletionException("Error deleting user");
         }

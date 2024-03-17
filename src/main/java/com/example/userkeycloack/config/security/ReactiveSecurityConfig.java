@@ -1,6 +1,6 @@
-package com.example.userkeycloack.security;
+package com.example.userkeycloack.config.security;
 
-import com.example.userkeycloack.jwt.JwtAuthConverter;
+import com.example.userkeycloack.config.jwt.JwtAuthConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +24,6 @@ public class ReactiveSecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/eureka/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

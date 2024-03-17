@@ -1,4 +1,4 @@
-package com.example.userkeycloack.config;
+package com.example.userkeycloack.config.admin;
 
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;

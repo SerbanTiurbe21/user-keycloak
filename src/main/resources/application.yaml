@@ -7,16 +7,15 @@ keycloak:
   urls:
     auth: http://${keycloak.domain}
 spring:
+  application:
+    name: user-service
   security:
     oauth2:
       resourceserver:
         jwt:
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
           issuer-uri: http://localhost:9090/realms/springboot-microservice-realm
-  application:
-    name: user-service
-  zipkin:
-    base-url: http://localhost:9411
+          useInsecureTrustManager: true
 jwt:
   auth:
     converter:
@@ -42,3 +41,6 @@ management:
   tracing:
     sampling:
       probability: '1.0'
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans

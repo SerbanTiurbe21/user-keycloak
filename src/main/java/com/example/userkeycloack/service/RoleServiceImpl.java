@@ -1,5 +1,6 @@
 package com.example.userkeycloack.service;
 
+import com.example.userkeycloack.exception.InvalidRoleException;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RolesResource;
@@ -17,9 +18,14 @@ public class RoleServiceImpl implements RoleService {
     private String realm;
     private final Keycloak keycloak;
     private final KeycloakUserService keycloakUserService;
+    private static final String ROLE_DEVELOPER = "DEVELOPER";
+    private static final String ROLE_HR = "HR";
 
     @Override
     public void assignRole(String userId, String roleName) {
+        if(!roleName.equals(ROLE_DEVELOPER) && !roleName.equals(ROLE_HR)){
+            throw new InvalidRoleException("Invalid role: " + roleName + ". Only DEVELOPER or HR roles are allowed.");
+        }
         UserResource userResource = keycloakUserService.getUserResource(userId);
         RolesResource rolesResource = getRolesResource();
         RoleRepresentation representation = rolesResource.get(roleName).toRepresentation();

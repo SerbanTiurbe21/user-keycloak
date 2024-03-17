@@ -1,5 +1,7 @@
 package com.example.userkeycloack.service;
 
+import com.example.userkeycloack.exception.InvalidPasswordException;
+import com.example.userkeycloack.exception.UserCreationException;
 import com.example.userkeycloack.exception.UserDeletionException;
 import com.example.userkeycloack.exception.UserNotFoundException;
 import com.example.userkeycloack.model.User;
@@ -24,8 +26,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -126,7 +128,7 @@ class KeycloakUserServiceTest {
     }
 
     @Test
-    void shouldUpdatePassword(){
+    void shouldUpdatePassword() {
         final String userId = "userId";
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
@@ -188,18 +190,36 @@ class KeycloakUserServiceTest {
     }
 
     @Test
-    void createUserShouldReturnNullWhenCreationFails() {
-        User user = new User("username", "email@test.com", "last", "first", "password123");
+    void createUserShouldThrowInvalidPasswordExceptionWhenPasswordIsNotValid() {
+        User userWithInvalidPassword = new User("username", "password", "password", "password", "password");
 
+        Exception exception = assertThrows(InvalidPasswordException.class, () -> keycloakUserService.createUser(userWithInvalidPassword));
+        assertEquals("Password should not be the same as the username, first name, last name or email", exception.getMessage());
+    }
+
+    @Test
+    void createUserShouldThrowUserCreationExceptionWhenCreationFails() {
+        User user = new User("username", "email@test.com", "last", "first", "password123");
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.create(any(UserRepresentation.class))).thenReturn(response);
         when(response.getStatus()).thenReturn(400);
 
-        User result = keycloakUserService.createUser(user);
-
-        assertNull(result);
+        Exception exception = assertThrows(UserCreationException.class, () -> keycloakUserService.createUser(user));
+        assertTrue(exception.getMessage().contains("Error creating user, status: 400"));
     }
+
+    @Test
+    void createUserShouldThrowUserCreationExceptionWhenExceptionOccurs() {
+        User user = new User("username", "email@test.com", "last", "first", "password123");
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.create(any(UserRepresentation.class))).thenThrow(new RuntimeException("Unexpected error"));
+
+        Exception exception = assertThrows(UserCreationException.class, () -> keycloakUserService.createUser(user));
+        assertTrue(exception.getMessage().contains("Exception occurred while creating user: Unexpected error"));
+    }
+
 
     @Test
     void createUserShouldTriggerEmailVerificationWhenUserIsCreatedButNotVerified() {

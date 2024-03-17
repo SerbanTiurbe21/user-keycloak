@@ -1,5 +1,6 @@
 package com.example.userkeycloack.service;
 
+import com.example.userkeycloack.exception.InvalidRoleException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -39,9 +42,9 @@ class RoleServiceTest {
     }
 
     @Test
-    void shouldAssignRole(){
+    void shouldAssignRole() {
         final String userId = "userId";
-        final String roleName = "roleName";
+        final String roleName = "DEVELOPER";
         final String realm = "myRealm";
 
         UserResource userResource = mock(UserResource.class);
@@ -63,6 +66,21 @@ class RoleServiceTest {
         roleService.assignRole(userId, roleName);
 
         verify(roleScopeResource, times(1)).add(Collections.singletonList(roleRepresentation));
+    }
+
+    @Test
+    void shouldThrowInvalidRoleExceptionForNonDeveloperOrHRRole() {
+        final String userId = "userId";
+        final String invalidRoleName = "INVALID_ROLE";
+
+        Exception exception = assertThrows(InvalidRoleException.class, () -> {
+            roleService.assignRole(userId, invalidRoleName);
+        });
+
+        String expectedMessage = "Invalid role: " + invalidRoleName + ". Only DEVELOPER or HR roles are allowed.";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 }
 
