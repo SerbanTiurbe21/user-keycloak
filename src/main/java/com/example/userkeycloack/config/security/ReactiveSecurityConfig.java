@@ -23,7 +23,7 @@ public class ReactiveSecurityConfig {
                 .csrf().disable()
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/eureka/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/users/create-user").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

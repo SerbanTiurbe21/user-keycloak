@@ -26,7 +26,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "User created successfully", content = @Content(schema = @Schema(implementation = User.class))),
             @ApiResponse(responseCode = "400", description = "Validation failed")
     })
-    @PostMapping
+    @PostMapping("/create-user")
     public ResponseEntity<User> createUser(
             @Parameter(description = "User object containing the necessary information to create a new user record. This includes personal details, qualifications, and any other relevant information.")
             @Valid @RequestBody User user){
