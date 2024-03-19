@@ -5,6 +5,7 @@ import com.example.userkeycloack.exception.UserCreationException;
 import com.example.userkeycloack.exception.UserDeletionException;
 import com.example.userkeycloack.exception.UserNotFoundException;
 import com.example.userkeycloack.model.User;
+import com.example.userkeycloack.model.UserDTO;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterEach;
@@ -75,7 +76,7 @@ class KeycloakUserServiceTest {
         when(usersResource.get(userId)).thenReturn(userResource);
         when(userResource.toRepresentation()).thenReturn(expectedUserRepresentation);
 
-        UserRepresentation actualUserRepresentation = keycloakUserService.getUser(userId);
+        UserDTO actualUserRepresentation = keycloakUserService.getUser(userId);
 
         assertEquals(expectedUserRepresentation.getUsername(), actualUserRepresentation.getUsername());
         verify(usersResource).get(userId);

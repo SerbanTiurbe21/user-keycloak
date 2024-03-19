@@ -1,6 +1,7 @@
 package com.example.userkeycloack.controller;
 
 import com.example.userkeycloack.model.User;
+import com.example.userkeycloack.model.UserDTO;
 import com.example.userkeycloack.service.KeycloakUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,7 +40,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @GetMapping("/{userId}")
-    public ResponseEntity<UserRepresentation> getUser(
+    public ResponseEntity<UserDTO> getUser(
             @Parameter(description = "ID of the user to be retrieved")
             @PathVariable String userId){
         return ResponseEntity.ok(keycloakUserService.getUser(userId));

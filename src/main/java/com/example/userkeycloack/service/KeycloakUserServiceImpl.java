@@ -5,6 +5,7 @@ import com.example.userkeycloack.exception.UserCreationException;
 import com.example.userkeycloack.exception.UserDeletionException;
 import com.example.userkeycloack.exception.UserNotFoundException;
 import com.example.userkeycloack.model.User;
+import com.example.userkeycloack.model.UserDTO;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,9 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -53,9 +56,27 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     }
 
     @Override
-    public UserRepresentation getUser(String userId) {
+    public UserDTO getUser(String userId) {
         UsersResource usersResource = getUsersResource();
-        return usersResource.get(userId).toRepresentation();
+        UserRepresentation userRepresentation = usersResource.get(userId).toRepresentation();
+        if (userRepresentation == null) {
+            return null;
+        }
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userRepresentation.getId());
+        userDTO.setUsername(userRepresentation.getUsername());
+        userDTO.setEmail(userRepresentation.getEmail());
+        userDTO.setFirstName(userRepresentation.getFirstName());
+        userDTO.setLastName(userRepresentation.getLastName());
+        userDTO.setEnabled(userRepresentation.isEnabled());
+        userDTO.setEmailVerified(userRepresentation.isEmailVerified());
+
+        if (userRepresentation.getAccess() != null) {
+            Map<String, Boolean> accessMap = new HashMap<>(userRepresentation.getAccess());
+            userDTO.setAccess(accessMap);
+        }
+        return userDTO;
     }
 
     @Override

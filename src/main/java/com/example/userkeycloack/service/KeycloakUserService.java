@@ -1,12 +1,12 @@
 package com.example.userkeycloack.service;
 
 import com.example.userkeycloack.model.User;
+import com.example.userkeycloack.model.UserDTO;
 import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.representations.idm.UserRepresentation;
 
 public interface KeycloakUserService {
     User createUser(User user);
-    UserRepresentation getUser(String userId);
+    UserDTO getUser(String userId);
     void deleteUserById(String userId);
     UserResource getUserResource(String userId);
     void updatePassword(String userId);

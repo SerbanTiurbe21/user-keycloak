@@ -1,6 +1,7 @@
 package com.example.userkeycloack.controller;
 
 import com.example.userkeycloack.model.User;
+import com.example.userkeycloack.model.UserDTO;
 import com.example.userkeycloack.service.KeycloakUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +45,7 @@ class KeycloakUserControllerTest {
     void getUserShouldReturnUserRepresentation() {
         String userId = "userId";
         when(keycloakUserService.getUser(userId)).thenReturn(null);
-        ResponseEntity<UserRepresentation> response = keycloakUserController.getUser(userId);
+        ResponseEntity<UserDTO> response = keycloakUserController.getUser(userId);
         verify(keycloakUserService).getUser(userId);
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
