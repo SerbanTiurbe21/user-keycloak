@@ -69,8 +69,8 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         userDTO.setEmail(userRepresentation.getEmail());
         userDTO.setFirstName(userRepresentation.getFirstName());
         userDTO.setLastName(userRepresentation.getLastName());
-        userDTO.setEnabled(userRepresentation.isEnabled());
-        userDTO.setEmailVerified(userRepresentation.isEmailVerified());
+        userDTO.setEnabled(Boolean.TRUE.equals(userRepresentation.isEnabled()));
+        userDTO.setEmailVerified((Boolean.TRUE.equals(userRepresentation.isEmailVerified())));
 
         if (userRepresentation.getAccess() != null) {
             Map<String, Boolean> accessMap = new HashMap<>(userRepresentation.getAccess());
