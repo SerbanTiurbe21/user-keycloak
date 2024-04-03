@@ -245,48 +245,30 @@ class KeycloakUserServiceTest {
     }
 
     @Test
-    void createUserShouldThrowUserCreationExceptionWhenUserWithSameUsernameAlreadyExists() {
-        User existingUser = new User("existingUsername", "email@test.com", "last", "first", "password123");
-        UserRepresentation existingUserRepresentation = new UserRepresentation();
-        existingUserRepresentation.setUsername(existingUser.getUsername());
-
-        when(keycloak.realm(anyString())).thenReturn(realmResource);
-        when(realmResource.users()).thenReturn(usersResource);
-        when(usersResource.search(existingUser.getUsername())).thenReturn(List.of(existingUserRepresentation));
-
-        Exception exception = assertThrows(UserCreationException.class, () -> keycloakUserService.createUser(existingUser));
-
-        assertEquals("User with the same username already exists.", exception.getMessage());
-
-        verify(usersResource).search(existingUser.getUsername());
-    }
-
-    @Test
-    void getUserByUsernameShouldReturnUserWhenUserExists() {
-        final String username = "testUsername";
+    void getUserByEmailShouldReturnUserWhenUserExists() {
+        final String email = "testEmail";
         UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setUsername(username);
+        userRepresentation.setUsername(email);
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
-        when(usersResource.searchByUsername(username, true)).thenReturn(List.of(userRepresentation));
+        when(usersResource.searchByEmail(email, true)).thenReturn(List.of(userRepresentation));
 
-        UserDTO user = keycloakUserService.getUserByUsername(username);
+        UserDTO user = keycloakUserService.getUserByEmail(email);
 
-        assertNotNull(user);
-        assertEquals(username, user.getUsername());
+        assertEquals(email, user.getUsername());
     }
 
     @Test
-    void getUserByUsernameShouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
-        final String username = "nonExistentUsername";
+    void getUserByEmailShouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+        final String email = "nonExistentUsername@email.com";
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
-        when(usersResource.searchByUsername(username, true)).thenReturn(Collections.emptyList());
+        when(usersResource.searchByEmail(email, true)).thenReturn(Collections.emptyList());
 
-        Exception exception = assertThrows(UserNotFoundException.class, () -> keycloakUserService.getUserByUsername(username));
-        assertEquals("User with username: " + username + " not found", exception.getMessage());
+        Exception exception = assertThrows(UserNotFoundException.class, () -> keycloakUserService.getUserByEmail(email));
+        assertEquals("User with email: " + email + " not found", exception.getMessage());
     }
 
     @Test
@@ -322,10 +304,10 @@ class KeycloakUserServiceTest {
     }
 
     @Test
-    void getUserByUsernameShouldPopulateAccessMap() {
-        final String username = "testUsername";
+    void getUserByEmailShouldPopulateAccessMap() {
+        final String email = "test@email.com";
         UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setUsername(username);
+        userRepresentation.setUsername(email);
 
         final Map<String, Boolean> access = new HashMap<>();
         access.put("manage", true);
@@ -334,15 +316,14 @@ class KeycloakUserServiceTest {
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
-        when(usersResource.searchByUsername(username, true)).thenReturn(List.of(userRepresentation));
+        when(usersResource.searchByEmail(email, true)).thenReturn(List.of(userRepresentation));
 
-        UserDTO user = keycloakUserService.getUserByUsername(username);
+        UserDTO user = keycloakUserService.getUserByEmail(email);
 
         assertNotNull(user.getAccess(), "Access map should not be null");
         assertFalse(user.getAccess().isEmpty(), "Access map should not be empty");
         assertEquals(access, user.getAccess(), "Access map should match the provided access values");
 
-        // Verify the interactions with the mock
-        verify(usersResource).searchByUsername(username, true);
+        verify(usersResource).searchByEmail(email, true);
     }
 }

@@ -27,7 +27,7 @@ class KeycloakUserControllerTest {
 
     @Test
     void createdUserShouldReturnUser() {
-        User mockUser = new User(
+        final User mockUser = new User(
                 "username",
                 "email",
                 "lastName",
@@ -43,7 +43,7 @@ class KeycloakUserControllerTest {
 
     @Test
     void getUserShouldReturnUserRepresentation() {
-        String userId = "userId";
+        final String userId = "userId";
         when(keycloakUserService.getUser(userId)).thenReturn(null);
         ResponseEntity<UserDTO> response = keycloakUserController.getUser(userId);
         verify(keycloakUserService).getUser(userId);
@@ -53,7 +53,7 @@ class KeycloakUserControllerTest {
 
     @Test
     void deleteUserShouldReturnNoContent() {
-        String userId = "userId";
+        final String userId = "userId";
         ResponseEntity<Void> response = keycloakUserController.deleteUser(userId);
         verify(keycloakUserService, times(1)).deleteUserById(userId);
         assertNull(response.getBody());
@@ -62,7 +62,7 @@ class KeycloakUserControllerTest {
 
     @Test
     void updatePasswordShouldReturnNoContent() {
-        String userId = "userId";
+        final String userId = "userId";
         ResponseEntity<Void> response = keycloakUserController.updatePassword(userId);
         verify(keycloakUserService, times(1)).updatePassword(userId);
         assertNull(response.getBody());
@@ -71,7 +71,7 @@ class KeycloakUserControllerTest {
 
     @Test
     void forgotPasswordShouldReturnNoContent() {
-        String username = "username";
+        final String username = "username";
         ResponseEntity<Void> response = keycloakUserController.forgotPassword(username);
         verify(keycloakUserService, times(1)).forgotPassword(username);
         assertNull(response.getBody());
@@ -79,13 +79,12 @@ class KeycloakUserControllerTest {
     }
 
     @Test
-    void getUserByUsernameShouldReturnUserDTO() {
-        String username = "username";
-        when(keycloakUserService.getUserByUsername(username)).thenReturn(null);
-        ResponseEntity<UserDTO> response = keycloakUserController.getUserByUsername(username);
-        verify(keycloakUserService).getUserByUsername(username);
+    void getUserByEmailShouldReturnUserDTO() {
+        final String email = "email@email.com";
+        when(keycloakUserService.getUserByEmail(email)).thenReturn(null);
+        ResponseEntity<UserDTO> response = keycloakUserController.getUserByEmail(email);
+        verify(keycloakUserService).getUserByEmail(email);
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
     }
-
 }

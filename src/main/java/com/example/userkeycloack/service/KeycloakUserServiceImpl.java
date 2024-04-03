@@ -81,11 +81,6 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         UserRepresentation userRepresentation = getUserRepresentation(user);
         UsersResource usersResource = getUsersResource();
 
-        List<UserRepresentation> existingUsers = usersResource.search(user.getUsername());
-        if (!existingUsers.isEmpty()) {
-            throw new UserCreationException("User with the same username already exists.");
-        }
-
         try (Response response = usersResource.create(userRepresentation)) {
             if (response.getStatus() == STATUS_CREATED) {
                 List<UserRepresentation> representationList = usersResource.searchByUsername(user.getUsername(), true);
@@ -145,11 +140,11 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     }
 
     @Override
-    public UserDTO getUserByUsername(String username) {
+    public UserDTO getUserByEmail(String email) {
         UsersResource usersResource = getUsersResource();
-        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(username, true);
+        List<UserRepresentation> userRepresentations = usersResource.searchByEmail(email, true);
         if (userRepresentations.isEmpty()) {
-            throw new UserNotFoundException("User with username: " + username + " not found");
+            throw new UserNotFoundException("User with email: " + email + " not found");
         }
 
         UserRepresentation userRepresentation = userRepresentations.get(0);

@@ -85,15 +85,15 @@ public class KeycloakUserController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get user by username", description = "Retrieves a user by their username")
+    @Operation(summary = "Get user by email", description = "Retrieves a user by their email")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping("/username/{username}")
-    public ResponseEntity<UserDTO> getUserByUsername(
-            @Parameter(description = "Username of the user to be retrieved")
-            @PathVariable String username){
-        return ResponseEntity.ok(keycloakUserService.getUserByUsername(username));
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UserDTO> getUserByEmail(
+            @Parameter(description = "Email of the user to be retrieved")
+            @PathVariable String email){
+        return ResponseEntity.ok(keycloakUserService.getUserByEmail(email));
     }
 }
