@@ -240,4 +240,21 @@ class KeycloakUserServiceTest {
 
         verify(userResource).sendVerifyEmail();
     }
+
+    @Test
+    void createUserShouldThrowUserCreationExceptionWhenUserWithSameUsernameAlreadyExists() {
+        User existingUser = new User("existingUsername", "email@test.com", "last", "first", "password123");
+        UserRepresentation existingUserRepresentation = new UserRepresentation();
+        existingUserRepresentation.setUsername(existingUser.getUsername());
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.search(existingUser.getUsername())).thenReturn(List.of(existingUserRepresentation));
+
+        Exception exception = assertThrows(UserCreationException.class, () -> keycloakUserService.createUser(existingUser));
+
+        assertEquals("User with the same username already exists.", exception.getMessage());
+
+        verify(usersResource).search(existingUser.getUsername());
+    }
 }

@@ -88,6 +88,11 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         UserRepresentation userRepresentation = getUserRepresentation(user);
         UsersResource usersResource = getUsersResource();
 
+        List<UserRepresentation> existingUsers = usersResource.search(user.getUsername());
+        if (!existingUsers.isEmpty()) {
+            throw new UserCreationException("User with the same username already exists.");
+        }
+
         try (Response response = usersResource.create(userRepresentation)) {
             if (response.getStatus() == STATUS_CREATED) {
                 List<UserRepresentation> representationList = usersResource.searchByUsername(user.getUsername(), true);

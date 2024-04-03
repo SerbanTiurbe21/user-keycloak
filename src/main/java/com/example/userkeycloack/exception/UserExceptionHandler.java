@@ -34,14 +34,14 @@ public class UserExceptionHandler {
         return new ResponseEntity<>(userException, userException.getHttpStatus());
     }
 
-//    @ExceptionHandler(value = {UserCreationException.class})
-//    public ResponseEntity<Object> handleUserCreationException(UserCreationException userCreationException) {
-//        UserException userException = new UserException(
-//                userCreationException.getMessage(),
-//                userCreationException.getMessage().contains("status: 409") ? HttpStatus.CONFLICT : HttpStatus.BAD_REQUEST
-//        );
-//        return new ResponseEntity<>(userException, userException.getHttpStatus());
-//    }
+    @ExceptionHandler(value = {UserCreationException.class})
+    public ResponseEntity<Object> handleUserCreationException(UserCreationException userCreationException) {
+        UserException userException = new UserException(
+                userCreationException.getMessage(),
+                userCreationException.getMessage().contains("status: 409") ? HttpStatus.CONFLICT : HttpStatus.BAD_REQUEST
+        );
+        return new ResponseEntity<>(userException, userException.getHttpStatus());
+    }
 
     @ExceptionHandler(value = {InvalidRoleException.class})
     public ResponseEntity<Object> handleInvalidRoleException(InvalidRoleException invalidRoleException) {
