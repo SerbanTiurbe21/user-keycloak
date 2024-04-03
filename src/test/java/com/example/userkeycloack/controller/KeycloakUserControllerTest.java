@@ -78,4 +78,14 @@ class KeycloakUserControllerTest {
         assertEquals(204, response.getStatusCode().value());
     }
 
+    @Test
+    void getUserByUsernameShouldReturnUserDTO() {
+        String username = "username";
+        when(keycloakUserService.getUserByUsername(username)).thenReturn(null);
+        ResponseEntity<UserDTO> response = keycloakUserController.getUserByUsername(username);
+        verify(keycloakUserService).getUserByUsername(username);
+        assertNull(response.getBody());
+        assertEquals(200, response.getStatusCode().value());
+    }
+
 }

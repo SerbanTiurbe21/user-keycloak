@@ -84,4 +84,16 @@ public class KeycloakUserController {
         keycloakUserService.forgotPassword(username);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Get user by username", description = "Retrieves a user by their username")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UserDTO> getUserByUsername(
+            @Parameter(description = "Username of the user to be retrieved")
+            @PathVariable String username){
+        return ResponseEntity.ok(keycloakUserService.getUserByUsername(username));
+    }
 }

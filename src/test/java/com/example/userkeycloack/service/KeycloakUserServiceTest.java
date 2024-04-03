@@ -23,12 +23,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -256,5 +259,90 @@ class KeycloakUserServiceTest {
         assertEquals("User with the same username already exists.", exception.getMessage());
 
         verify(usersResource).search(existingUser.getUsername());
+    }
+
+    @Test
+    void getUserByUsernameShouldReturnUserWhenUserExists() {
+        final String username = "testUsername";
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setUsername(username);
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.searchByUsername(username, true)).thenReturn(List.of(userRepresentation));
+
+        UserDTO user = keycloakUserService.getUserByUsername(username);
+
+        assertNotNull(user);
+        assertEquals(username, user.getUsername());
+    }
+
+    @Test
+    void getUserByUsernameShouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+        final String username = "nonExistentUsername";
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.searchByUsername(username, true)).thenReturn(Collections.emptyList());
+
+        Exception exception = assertThrows(UserNotFoundException.class, () -> keycloakUserService.getUserByUsername(username));
+        assertEquals("User with username: " + username + " not found", exception.getMessage());
+    }
+
+    @Test
+    void getUserShouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+        final String nonExistentUserId = "nonExistentUserId";
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(nonExistentUserId)).thenThrow(new NotFoundException("User with id: " + nonExistentUserId + " not found"));
+
+        UserNotFoundException thrownException = assertThrows(UserNotFoundException.class, () -> keycloakUserService.getUser(nonExistentUserId),
+                "Expected getUser to throw UserNotFoundException, but it did not");
+
+        assertTrue(thrownException.getMessage().contains("User with id: " + nonExistentUserId + " not found"));
+
+        verify(usersResource).get(nonExistentUserId);
+    }
+
+    @Test
+    void getUserShouldThrowUserNotFoundExceptionWhenUserRepresentationIsNull() {
+        final String userId = "userId";
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(null);
+
+        assertThrows(UserNotFoundException.class, () -> keycloakUserService.getUser(userId),
+                "Expected getUser to throw UserNotFoundException when userRepresentation is null");
+
+        verify(usersResource).get(userId);
+        verify(userResource).toRepresentation();
+    }
+
+    @Test
+    void getUserByUsernameShouldPopulateAccessMap() {
+        final String username = "testUsername";
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setUsername(username);
+
+        final Map<String, Boolean> access = new HashMap<>();
+        access.put("manage", true);
+        access.put("view", true);
+        userRepresentation.setAccess(access);
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.searchByUsername(username, true)).thenReturn(List.of(userRepresentation));
+
+        UserDTO user = keycloakUserService.getUserByUsername(username);
+
+        assertNotNull(user.getAccess(), "Access map should not be null");
+        assertFalse(user.getAccess().isEmpty(), "Access map should not be empty");
+        assertEquals(access, user.getAccess(), "Access map should match the provided access values");
+
+        // Verify the interactions with the mock
+        verify(usersResource).searchByUsername(username, true);
     }
 }

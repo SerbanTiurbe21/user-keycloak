@@ -58,25 +58,18 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     @Override
     public UserDTO getUser(String userId) {
         UsersResource usersResource = getUsersResource();
-        UserRepresentation userRepresentation = usersResource.get(userId).toRepresentation();
+        UserRepresentation userRepresentation;
+        try {
+            userRepresentation = usersResource.get(userId).toRepresentation();
+        } catch (NotFoundException e) {
+            throw new UserNotFoundException("User with id: " + userId + " not found");
+        }
+
         if (userRepresentation == null) {
-            return null;
+            throw new UserNotFoundException("User with id: " + userId + " not found");
         }
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(userRepresentation.getId());
-        userDTO.setUsername(userRepresentation.getUsername());
-        userDTO.setEmail(userRepresentation.getEmail());
-        userDTO.setFirstName(userRepresentation.getFirstName());
-        userDTO.setLastName(userRepresentation.getLastName());
-        userDTO.setEnabled(Boolean.TRUE.equals(userRepresentation.isEnabled()));
-        userDTO.setEmailVerified((Boolean.TRUE.equals(userRepresentation.isEmailVerified())));
-
-        if (userRepresentation.getAccess() != null) {
-            Map<String, Boolean> accessMap = new HashMap<>(userRepresentation.getAccess());
-            userDTO.setAccess(accessMap);
-        }
-        return userDTO;
+        return getUserDTO(userRepresentation);
     }
 
     @Override
@@ -149,5 +142,34 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     public void emailVerification(String userId) {
         UsersResource usersResource = getUsersResource();
         usersResource.get(userId).sendVerifyEmail();
+    }
+
+    @Override
+    public UserDTO getUserByUsername(String username) {
+        UsersResource usersResource = getUsersResource();
+        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(username, true);
+        if (userRepresentations.isEmpty()) {
+            throw new UserNotFoundException("User with username: " + username + " not found");
+        }
+
+        UserRepresentation userRepresentation = userRepresentations.get(0);
+        return getUserDTO(userRepresentation);
+    }
+
+    private UserDTO getUserDTO(UserRepresentation userRepresentation) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userRepresentation.getId());
+        userDTO.setUsername(userRepresentation.getUsername());
+        userDTO.setEmail(userRepresentation.getEmail());
+        userDTO.setFirstName(userRepresentation.getFirstName());
+        userDTO.setLastName(userRepresentation.getLastName());
+        userDTO.setEnabled(Boolean.TRUE.equals(userRepresentation.isEnabled()));
+        userDTO.setEmailVerified((Boolean.TRUE.equals(userRepresentation.isEmailVerified())));
+
+        if (userRepresentation.getAccess() != null) {
+            Map<String, Boolean> accessMap = new HashMap<>(userRepresentation.getAccess());
+            userDTO.setAccess(accessMap);
+        }
+        return userDTO;
     }
 }
