@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", methods = {RequestMethod.PUT})
 public class KeycloakRoleController {
     private final RoleService roleService;
 
