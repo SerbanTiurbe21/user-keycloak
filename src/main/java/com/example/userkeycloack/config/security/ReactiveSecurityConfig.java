@@ -27,6 +27,7 @@ public class ReactiveSecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/eureka/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/users/create-user").permitAll()
+                        .pathMatchers(HttpMethod.GET,"/api/v1/users/email").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

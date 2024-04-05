@@ -89,10 +89,10 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping("/email/{email}")
+    @GetMapping("/email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(description = "Email of the user to be retrieved")
-            @PathVariable String email){
+            @RequestParam String email){
         return ResponseEntity.ok(keycloakUserService.getUserByEmail(email));
     }
 }
