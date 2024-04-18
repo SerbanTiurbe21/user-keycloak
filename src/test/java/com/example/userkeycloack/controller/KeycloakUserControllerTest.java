@@ -92,13 +92,6 @@ class KeycloakUserControllerTest {
     void shouldUpdateUser() {
         final String userId = "userId";
         final String lastName = "lastName";
-        final User mockUser = new User(
-                "username",
-                "email",
-                "lastName",
-                "firstName",
-                "password"
-        );
         doNothing().when(keycloakUserService).updateUser(userId, lastName);
         ResponseEntity<Void> response = keycloakUserController.updateUser(userId, lastName);
         verify(keycloakUserService, times(1)).updateUser(userId, lastName);
