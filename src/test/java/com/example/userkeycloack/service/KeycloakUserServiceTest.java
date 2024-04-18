@@ -34,9 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class KeycloakUserServiceTest {
@@ -325,5 +324,71 @@ class KeycloakUserServiceTest {
         assertEquals(access, user.getAccess(), "Access map should match the provided access values");
 
         verify(usersResource).searchByEmail(email, true);
+    }
+
+    @Test
+    void shouldUpdateUserWhenUserExists() {
+        final String userId = "existingUserId";
+        final String newLastName = "UpdatedLastName";
+
+        User user = new User("username", "email@test.com", newLastName, "first", "password123");
+        UserResource userResource = mock(UserResource.class);
+        UserRepresentation userRepresentation = new UserRepresentation();
+
+        userRepresentation.setLastName("OriginalLastName");
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(userRepresentation);
+
+        keycloakUserService.updateUser(userId, user);
+
+        userRepresentation.setLastName(newLastName);
+
+        assertEquals(newLastName, userRepresentation.getLastName(), "The last name should be updated to the new value");
+
+        verify(userResource).update(userRepresentation);
+    }
+
+    @Test
+    void shouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+        final String nonExistentUserId = "nonExistentUserId";
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(nonExistentUserId)).thenThrow(new NotFoundException("User with id: " + nonExistentUserId + " not found"));
+
+        User user = new User("username", "email@test.com", "last", "first", "password123");
+
+        UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
+                () -> keycloakUserService.updateUser(nonExistentUserId, user),
+                "Expected updateUser to throw UserNotFoundException, but it did not");
+
+        assertTrue(thrownException.getMessage().contains("User with id: " + nonExistentUserId + " not found"));
+
+        verify(usersResource).get(nonExistentUserId);
+        verifyNoMoreInteractions(usersResource);
+    }
+
+    @Test
+    void shouldThrowUserNotFoundExceptionWhenUserRepresentationIsNull() {
+        final String userId = "existingUserIdButNoData";
+
+        User user = new User("username", "email@test.com", "last", "first", "password123");
+        UserResource userResource = mock(UserResource.class);
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(null);
+
+        UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
+                () -> keycloakUserService.updateUser(userId, user),
+                "Expected updateUser to throw UserNotFoundException because user representation is null");
+
+        assertTrue(thrownException.getMessage().contains("User with id: " + userId + " not found"));
+
+        verify(userResource).toRepresentation();
     }
 }

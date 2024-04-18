@@ -5,7 +5,6 @@ import com.example.userkeycloack.model.UserDTO;
 import com.example.userkeycloack.service.KeycloakUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -13,9 +12,10 @@ import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
 class KeycloakUserControllerTest {
@@ -86,5 +86,22 @@ class KeycloakUserControllerTest {
         verify(keycloakUserService).getUserByEmail(email);
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
+    }
+
+    @Test
+    void shouldUpdateUser() {
+        final String userId = "userId";
+        final User mockUser = new User(
+                "username",
+                "email",
+                "lastName",
+                "firstName",
+                "password"
+        );
+        doNothing().when(keycloakUserService).updateUser(userId, mockUser);
+        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, mockUser);
+        verify(keycloakUserService, times(1)).updateUser(userId, mockUser);
+        assertNull(response.getBody());
+        assertEquals(204, response.getStatusCode().value());
     }
 }

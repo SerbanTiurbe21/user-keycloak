@@ -22,7 +22,6 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
@@ -32,7 +31,20 @@ class RoleServiceTest {
     private Keycloak keycloak;
     @Mock
     private KeycloakUserService keycloakUserService;
-
+    @Mock
+    private UserResource userResource;
+    @Mock
+    private RolesResource rolesResource;
+    @Mock
+    private RoleResource roleResource;
+    @Mock
+    private RoleRepresentation roleRepresentation;
+    @Mock
+    private RealmResource realmResource;
+    @Mock
+    private RoleMappingResource roleMappingResource;
+    @Mock
+    private RoleScopeResource roleScopeResource;
     @InjectMocks
     private RoleServiceImpl roleService;
 
@@ -47,21 +59,7 @@ class RoleServiceTest {
         final String roleName = "DEVELOPER";
         final String realm = "myRealm";
 
-        UserResource userResource = mock(UserResource.class);
-        RolesResource rolesResource = mock(RolesResource.class);
-        RoleResource roleResource = mock(RoleResource.class);
-        RoleRepresentation roleRepresentation = mock(RoleRepresentation.class);
-        RealmResource realmResource = mock(RealmResource.class);
-        RoleMappingResource roleMappingResource = mock(RoleMappingResource.class);
-        RoleScopeResource roleScopeResource = mock(RoleScopeResource.class);
-
-        when(keycloakUserService.getUserResource(userId)).thenReturn(userResource);
-        when(keycloak.realm(realm)).thenReturn(realmResource);
-        when(realmResource.roles()).thenReturn(rolesResource);
-        when(rolesResource.get(roleName)).thenReturn(roleResource);
-        when(roleResource.toRepresentation()).thenReturn(roleRepresentation);
-        when(userResource.roles()).thenReturn(roleMappingResource);
-        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        testSetup(userId, realm, roleName);
 
         roleService.assignRole(userId, roleName);
 
@@ -81,6 +79,15 @@ class RoleServiceTest {
         String actualMessage = exception.getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage));
+    }
+    private void testSetup(String userId, String realm, String roleName) {
+        when(keycloakUserService.getUserResource(userId)).thenReturn(userResource);
+        when(keycloak.realm(realm)).thenReturn(realmResource);
+        when(realmResource.roles()).thenReturn(rolesResource);
+        when(rolesResource.get(roleName)).thenReturn(roleResource);
+        when(roleResource.toRepresentation()).thenReturn(roleRepresentation);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
     }
 }
 

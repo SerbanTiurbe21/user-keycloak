@@ -13,4 +13,5 @@ public interface KeycloakUserService {
     void forgotPassword(String username);
     void emailVerification(String userId);
     UserDTO getUserByEmail(String email);
+    void updateUser(String id, User user);
 }

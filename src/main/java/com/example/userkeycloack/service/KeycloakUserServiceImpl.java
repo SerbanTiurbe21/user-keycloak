@@ -151,6 +151,24 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         return getUserDTO(userRepresentation);
     }
 
+    @Override
+    public void updateUser(String id, User user) {
+        UserResource userResource;
+        try {
+            userResource = getUserResource(id);
+        } catch (NotFoundException e) {
+            throw new UserNotFoundException("User with id: " + id + " not found");
+        }
+
+        UserRepresentation userRepresentation = userResource.toRepresentation();
+        if (userRepresentation == null) {
+            throw new UserNotFoundException("User with id: " + id + " not found");
+        }
+        userRepresentation.setLastName(user.getLastName());
+        userResource.update(userRepresentation);
+    }
+
+
     private UserDTO getUserDTO(UserRepresentation userRepresentation) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(userRepresentation.getId());

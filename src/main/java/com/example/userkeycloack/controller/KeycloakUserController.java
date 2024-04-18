@@ -95,4 +95,19 @@ public class KeycloakUserController {
             @RequestParam String email){
         return ResponseEntity.ok(keycloakUserService.getUserByEmail(email));
     }
+
+    @Operation(summary = "Update user", description = "Updates a user by their ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "User updated successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PutMapping("/{userId}")
+    public ResponseEntity<Void> updateUser(
+            @Parameter(description = "ID of the user to be updated")
+            @PathVariable String userId,
+            @Parameter(description = "User object containing the necessary information to update the user record. This includes personal details, qualifications, and any other relevant information.")
+            @Valid @RequestBody User user){
+        keycloakUserService.updateUser(userId, user);
+        return ResponseEntity.noContent().build();
+    }
 }
