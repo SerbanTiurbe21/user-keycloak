@@ -328,10 +328,10 @@ class KeycloakUserServiceTest {
 
     @Test
     void shouldUpdateUserWhenUserExists() {
+        final String lastName = "UpdatedLastName";
         final String userId = "existingUserId";
         final String newLastName = "UpdatedLastName";
 
-        User user = new User("username", "email@test.com", newLastName, "first", "password123");
         UserResource userResource = mock(UserResource.class);
         UserRepresentation userRepresentation = new UserRepresentation();
 
@@ -342,7 +342,7 @@ class KeycloakUserServiceTest {
         when(usersResource.get(userId)).thenReturn(userResource);
         when(userResource.toRepresentation()).thenReturn(userRepresentation);
 
-        keycloakUserService.updateUser(userId, user);
+        keycloakUserService.updateUser(userId, lastName);
 
         userRepresentation.setLastName(newLastName);
 
@@ -354,6 +354,7 @@ class KeycloakUserServiceTest {
     @Test
     void shouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
         final String nonExistentUserId = "nonExistentUserId";
+        final String lastName = "UpdatedLastName";
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
@@ -362,7 +363,7 @@ class KeycloakUserServiceTest {
         User user = new User("username", "email@test.com", "last", "first", "password123");
 
         UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
-                () -> keycloakUserService.updateUser(nonExistentUserId, user),
+                () -> keycloakUserService.updateUser(nonExistentUserId, lastName),
                 "Expected updateUser to throw UserNotFoundException, but it did not");
 
         assertTrue(thrownException.getMessage().contains("User with id: " + nonExistentUserId + " not found"));
@@ -374,6 +375,7 @@ class KeycloakUserServiceTest {
     @Test
     void shouldThrowUserNotFoundExceptionWhenUserRepresentationIsNull() {
         final String userId = "existingUserIdButNoData";
+        final String lastName = "UpdatedLastName";
 
         User user = new User("username", "email@test.com", "last", "first", "password123");
         UserResource userResource = mock(UserResource.class);
@@ -384,7 +386,7 @@ class KeycloakUserServiceTest {
         when(userResource.toRepresentation()).thenReturn(null);
 
         UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
-                () -> keycloakUserService.updateUser(userId, user),
+                () -> keycloakUserService.updateUser(userId, lastName),
                 "Expected updateUser to throw UserNotFoundException because user representation is null");
 
         assertTrue(thrownException.getMessage().contains("User with id: " + userId + " not found"));

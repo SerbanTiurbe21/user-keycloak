@@ -91,6 +91,7 @@ class KeycloakUserControllerTest {
     @Test
     void shouldUpdateUser() {
         final String userId = "userId";
+        final String lastName = "lastName";
         final User mockUser = new User(
                 "username",
                 "email",
@@ -98,9 +99,9 @@ class KeycloakUserControllerTest {
                 "firstName",
                 "password"
         );
-        doNothing().when(keycloakUserService).updateUser(userId, mockUser);
-        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, mockUser);
-        verify(keycloakUserService, times(1)).updateUser(userId, mockUser);
+        doNothing().when(keycloakUserService).updateUser(userId, lastName);
+        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, lastName);
+        verify(keycloakUserService, times(1)).updateUser(userId, lastName);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
     }

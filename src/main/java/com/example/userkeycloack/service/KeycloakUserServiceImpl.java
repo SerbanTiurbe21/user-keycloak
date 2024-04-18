@@ -152,7 +152,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     }
 
     @Override
-    public void updateUser(String id, User user) {
+    public void updateUser(String id, String lastName) {
         UserResource userResource;
         try {
             userResource = getUserResource(id);
@@ -164,7 +164,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         if (userRepresentation == null) {
             throw new UserNotFoundException("User with id: " + id + " not found");
         }
-        userRepresentation.setLastName(user.getLastName());
+        userRepresentation.setLastName(lastName);
         userResource.update(userRepresentation);
     }
 

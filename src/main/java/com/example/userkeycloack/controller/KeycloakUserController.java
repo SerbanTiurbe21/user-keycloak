@@ -105,9 +105,9 @@ public class KeycloakUserController {
     public ResponseEntity<Void> updateUser(
             @Parameter(description = "ID of the user to be updated")
             @PathVariable String userId,
-            @Parameter(description = "User object containing the necessary information to update the user record. This includes personal details, qualifications, and any other relevant information.")
-            @Valid @RequestBody User user){
-        keycloakUserService.updateUser(userId, user);
+            @Parameter(description = "Last name of the user.")
+            @RequestParam String lastName){
+        keycloakUserService.updateUser(userId, lastName);
         return ResponseEntity.noContent().build();
     }
 }
