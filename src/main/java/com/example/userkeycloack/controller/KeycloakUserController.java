@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -63,6 +64,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User password updated successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
     @PutMapping("/{userId}/password")
     public ResponseEntity<Void> updatePassword(
             @Parameter(description = "ID of the user to be updated")
@@ -76,10 +78,10 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "Forgot password email sent successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PutMapping("/{username}/forgot-password")
+    @PutMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
             @Parameter(description = "Username of the user to send the forgot password email")
-            @PathVariable String username){
+            @RequestParam String username){
         keycloakUserService.forgotPassword(username);
         return ResponseEntity.noContent().build();
     }
@@ -101,6 +103,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User updated successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
     @PutMapping("/{userId}")
     public ResponseEntity<Void> updateUser(
             @Parameter(description = "ID of the user to be updated")
