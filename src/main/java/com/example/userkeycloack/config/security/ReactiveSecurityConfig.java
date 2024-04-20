@@ -29,6 +29,7 @@ public class ReactiveSecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/v1/users/create-user").permitAll()
                         .pathMatchers(HttpMethod.GET,"/api/v1/users/email").permitAll()
                         .pathMatchers(HttpMethod.PUT,"/api/v1/users/forgot-password").permitAll()
+                        .pathMatchers(HttpMethod.PUT,"/api/v1/roles/assign-role/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

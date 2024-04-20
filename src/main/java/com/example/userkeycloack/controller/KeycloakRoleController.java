@@ -19,7 +19,7 @@ public class KeycloakRoleController {
             @ApiResponse(responseCode = "204", description = "Role assigned successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PutMapping("/assign-role/user/{userId}")
+    @PutMapping("/assign-role/{userId}")
     public ResponseEntity<Void> assignRole(@PathVariable String userId, @RequestParam String roleName){
         roleService.assignRole(userId,roleName);
         return ResponseEntity.noContent().build();
