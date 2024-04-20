@@ -14,6 +14,7 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -178,6 +180,16 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         userDTO.setLastName(userRepresentation.getLastName());
         userDTO.setEnabled(Boolean.TRUE.equals(userRepresentation.isEnabled()));
         userDTO.setEmailVerified((Boolean.TRUE.equals(userRepresentation.isEmailVerified())));
+
+        UserResource userResource = getUsersResource().get(userRepresentation.getId());
+        List<RoleRepresentation> allRoles = userResource.roles().realmLevel().listEffective();
+        List<String> relevantRoles = allRoles.stream()
+                .map(RoleRepresentation::getName)
+                .filter(roleName -> roleName.equals("HR") || roleName.equals("DEVELOPER"))
+                .toList();
+        if (!relevantRoles.isEmpty()) {
+            userDTO.setRole(relevantRoles.get(0));
+        }
 
         if (userRepresentation.getAccess() != null) {
             Map<String, Boolean> accessMap = new HashMap<>(userRepresentation.getAccess());

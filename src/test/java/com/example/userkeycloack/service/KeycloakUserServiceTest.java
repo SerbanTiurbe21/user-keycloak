@@ -13,25 +13,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.admin.client.resource.*;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,6 +49,10 @@ class KeycloakUserServiceTest {
     private UserResource userResource;
     @Mock
     private Response response;
+    @Mock
+    private RoleMappingResource roleMappingResource;
+    @Mock
+    private RoleScopeResource roleScopeResource;
 
     @InjectMocks
     private KeycloakUserServiceImpl keycloakUserService;
@@ -69,19 +68,29 @@ class KeycloakUserServiceTest {
 
     @Test
     void shouldGetUser() {
-        String userId = "userId";
+        final String userId = "userId";
         UserRepresentation expectedUserRepresentation = new UserRepresentation();
         expectedUserRepresentation.setUsername("testUser");
+        expectedUserRepresentation.setId(userId);
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.get(userId)).thenReturn(userResource);
         when(userResource.toRepresentation()).thenReturn(expectedUserRepresentation);
 
+        List<RoleRepresentation> roles = new ArrayList<>();
+        RoleRepresentation role = new RoleRepresentation();
+        role.setName("SomeRole");
+        roles.add(role);
+
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(roleScopeResource.listEffective()).thenReturn(roles);
+
         UserDTO actualUserRepresentation = keycloakUserService.getUser(userId);
 
         assertEquals(expectedUserRepresentation.getUsername(), actualUserRepresentation.getUsername());
-        verify(usersResource).get(userId);
+        verify(usersResource, times(2)).get(userId);
         verify(userResource).toRepresentation();
     }
 
@@ -248,10 +257,21 @@ class KeycloakUserServiceTest {
         final String email = "testEmail";
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(email);
+        userRepresentation.setId("123");
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.searchByEmail(email, true)).thenReturn(List.of(userRepresentation));
+
+        List<RoleRepresentation> roleRepresentations = new ArrayList<>();
+        RoleRepresentation devRole = new RoleRepresentation();
+        devRole.setName("DEVELOPER");
+        roleRepresentations.add(devRole);
+
+        when(usersResource.get(anyString())).thenReturn(userResource);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(roleMappingResource.realmLevel().listEffective()).thenReturn(roleRepresentations);
 
         UserDTO user = keycloakUserService.getUserByEmail(email);
 
@@ -304,27 +324,37 @@ class KeycloakUserServiceTest {
 
     @Test
     void getUserByEmailShouldPopulateAccessMap() {
-        final String email = "test@email.com";
+        final String email = "testEmail";
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(email);
-
-        final Map<String, Boolean> access = new HashMap<>();
-        access.put("manage", true);
-        access.put("view", true);
-        userRepresentation.setAccess(access);
+        userRepresentation.setId("123");
+        Map<String, Boolean> accessMap = new HashMap<>();
+        accessMap.put("manage-account", true);
+        userRepresentation.setAccess(accessMap);
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.searchByEmail(email, true)).thenReturn(List.of(userRepresentation));
 
+        List<RoleRepresentation> roleRepresentations = new ArrayList<>();
+        RoleRepresentation devRole = new RoleRepresentation();
+        devRole.setName("DEVELOPER");
+        roleRepresentations.add(devRole);
+
+        when(usersResource.get(anyString())).thenReturn(userResource);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(userResource.roles().realmLevel().listEffective()).thenReturn(roleRepresentations);
+
         UserDTO user = keycloakUserService.getUserByEmail(email);
 
-        assertNotNull(user.getAccess(), "Access map should not be null");
-        assertFalse(user.getAccess().isEmpty(), "Access map should not be empty");
-        assertEquals(access, user.getAccess(), "Access map should match the provided access values");
-
-        verify(usersResource).searchByEmail(email, true);
+        assertEquals(email, user.getUsername());
+        assertNotNull(user.getAccess());
+        assertTrue(user.getAccess().get("manage-account"));
+        assertNotNull(user.getRole());
+        assertTrue(user.getRole().equals("HR") || user.getRole().equals("DEVELOPER"));
     }
+
 
     @Test
     void shouldUpdateUserWhenUserExists() {
@@ -377,7 +407,6 @@ class KeycloakUserServiceTest {
         final String userId = "existingUserIdButNoData";
         final String lastName = "UpdatedLastName";
 
-        User user = new User("username", "email@test.com", "last", "first", "password123");
         UserResource userResource = mock(UserResource.class);
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);

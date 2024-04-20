@@ -14,4 +14,5 @@ public class UserDTO {
     private boolean enabled;
     private boolean emailVerified;
     private Map<String, Boolean> access;
+    private String role;
 }
