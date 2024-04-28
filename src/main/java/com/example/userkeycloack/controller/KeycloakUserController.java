@@ -98,7 +98,6 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @GetMapping("/email")
-    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
     public Mono<ResponseEntity<UserDTO>> getUserByEmail(
             @Parameter(description = "Email of the user to be retrieved")
             @RequestParam String email){
