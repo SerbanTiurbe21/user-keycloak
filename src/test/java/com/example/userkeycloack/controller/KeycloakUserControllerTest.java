@@ -37,7 +37,7 @@ class KeycloakUserControllerTest {
                 "password"
         );
         when(keycloakUserService.createUser(mockUser)).thenReturn(mockUser);
-        ResponseEntity<User> response = keycloakUserController.createUser(mockUser);
+        ResponseEntity<User> response = keycloakUserController.createUser(mockUser).block();
         verify(keycloakUserService).createUser(mockUser);
         assertEquals(mockUser, response.getBody());
         assertEquals(200, response.getStatusCode().value());
@@ -47,7 +47,7 @@ class KeycloakUserControllerTest {
     void getUserShouldReturnUserRepresentation() {
         final String userId = "userId";
         when(keycloakUserService.getUser(userId)).thenReturn(null);
-        ResponseEntity<UserDTO> response = keycloakUserController.getUser(userId);
+        ResponseEntity<UserDTO> response = keycloakUserController.getUser(userId).block();
         verify(keycloakUserService).getUser(userId);
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
@@ -56,7 +56,7 @@ class KeycloakUserControllerTest {
     @Test
     void deleteUserShouldReturnNoContent() {
         final String userId = "userId";
-        ResponseEntity<Void> response = keycloakUserController.deleteUser(userId);
+        ResponseEntity<Void> response = keycloakUserController.deleteUser(userId).block();
         verify(keycloakUserService, times(1)).deleteUserById(userId);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
@@ -65,7 +65,7 @@ class KeycloakUserControllerTest {
     @Test
     void updatePasswordShouldReturnNoContent() {
         final String userId = "userId";
-        ResponseEntity<Void> response = keycloakUserController.updatePassword(userId);
+        ResponseEntity<Void> response = keycloakUserController.updatePassword(userId).block();
         verify(keycloakUserService, times(1)).updatePassword(userId);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
@@ -74,7 +74,7 @@ class KeycloakUserControllerTest {
     @Test
     void forgotPasswordShouldReturnNoContent() {
         final String username = "username";
-        ResponseEntity<Void> response = keycloakUserController.forgotPassword(username);
+        ResponseEntity<Void> response = keycloakUserController.forgotPassword(username).block();
         verify(keycloakUserService, times(1)).forgotPassword(username);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
@@ -84,7 +84,7 @@ class KeycloakUserControllerTest {
     void getUserByEmailShouldReturnUserDTO() {
         final String email = "email@email.com";
         when(keycloakUserService.getUserByEmail(email)).thenReturn(null);
-        ResponseEntity<UserDTO> response = keycloakUserController.getUserByEmail(email);
+        ResponseEntity<UserDTO> response = keycloakUserController.getUserByEmail(email).block();
         verify(keycloakUserService).getUserByEmail(email);
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
@@ -95,7 +95,7 @@ class KeycloakUserControllerTest {
         final String userId = "userId";
         final String lastName = "lastName";
         doNothing().when(keycloakUserService).updateUser(userId, lastName);
-        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, lastName);
+        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, lastName).block();
         verify(keycloakUserService, times(1)).updateUser(userId, lastName);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
@@ -104,7 +104,7 @@ class KeycloakUserControllerTest {
     @Test
     void shouldGetAllUsers() {
         when(keycloakUserService.getAllUsers()).thenReturn(null);
-        ResponseEntity<List<UserDTO>> response = keycloakUserController.getAllUsers();
+        ResponseEntity<List<UserDTO>> response = keycloakUserController.getAllUsers().block();
         verify(keycloakUserService).getAllUsers();
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
