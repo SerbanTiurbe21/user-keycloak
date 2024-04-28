@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
@@ -97,5 +99,14 @@ class KeycloakUserControllerTest {
         verify(keycloakUserService, times(1)).updateUser(userId, lastName);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
+    }
+
+    @Test
+    void shouldGetAllUsers() {
+        when(keycloakUserService.getAllUsers()).thenReturn(null);
+        ResponseEntity<List<UserDTO>> response = keycloakUserController.getAllUsers();
+        verify(keycloakUserService).getAllUsers();
+        assertNull(response.getBody());
+        assertEquals(200, response.getStatusCode().value());
     }
 }

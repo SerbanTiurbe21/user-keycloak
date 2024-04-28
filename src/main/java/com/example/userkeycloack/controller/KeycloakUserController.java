@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -39,6 +41,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserRepresentation.class))),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ROLE_client-hr')")
     @GetMapping("/{userId}")
     public ResponseEntity<UserDTO> getUser(
             @Parameter(description = "ID of the user to be retrieved")
@@ -51,6 +54,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User deleted successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ROLE_client-hr')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID of the user to be deleted")
@@ -78,6 +82,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "Forgot password email sent successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
     @PutMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
             @Parameter(description = "Username of the user to send the forgot password email")
@@ -91,6 +96,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @PreAuthorize("hasRole('ROLE_client-hr')")
     @GetMapping("/email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(description = "Email of the user to be retrieved")
@@ -103,7 +109,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User updated successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
+    @PreAuthorize("hasRole('ROLE_client-hr')")
     @PutMapping("/{userId}")
     public ResponseEntity<Void> updateUser(
             @Parameter(description = "ID of the user to be updated")
@@ -112,5 +118,16 @@ public class KeycloakUserController {
             @RequestParam String lastName){
         keycloakUserService.updateUser(userId, lastName);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get all users", description = "Retrieves all users")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "404", description = "No users found")
+    })
+    @PreAuthorize("hasRole('ROLE_client-hr')")
+    @GetMapping("/all")
+    public ResponseEntity<List<UserDTO>> getAllUsers(){
+        return ResponseEntity.ok(keycloakUserService.getAllUsers());
     }
 }

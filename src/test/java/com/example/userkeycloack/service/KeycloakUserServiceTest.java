@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -390,8 +391,6 @@ class KeycloakUserServiceTest {
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.get(nonExistentUserId)).thenThrow(new NotFoundException("User with id: " + nonExistentUserId + " not found"));
 
-        User user = new User("username", "email@test.com", "last", "first", "password123");
-
         UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
                 () -> keycloakUserService.updateUser(nonExistentUserId, lastName),
                 "Expected updateUser to throw UserNotFoundException, but it did not");
@@ -421,5 +420,59 @@ class KeycloakUserServiceTest {
         assertTrue(thrownException.getMessage().contains("User with id: " + userId + " not found"));
 
         verify(userResource).toRepresentation();
+    }
+    @Test
+    void shouldGetAllUsers() {
+        List<UserRepresentation> userRepresentations = getUserRepresentations();
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.list()).thenReturn(userRepresentations);
+        when(usersResource.get("1")).thenReturn(userResource);
+        when(usersResource.get("2")).thenReturn(userResource);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+
+        List<RoleRepresentation> roles = List.of(new RoleRepresentation(){{ setName("DEVELOPER"); }});
+        when(roleScopeResource.listEffective()).thenReturn(roles);
+
+        List<UserDTO> users = keycloakUserService.getAllUsers();
+
+        assertNotNull(users);
+        assertEquals(2, users.size());
+        assertEquals("user1", users.get(0).getUsername());
+        assertEquals("user2", users.get(1).getUsername());
+        assertTrue(users.get(0).isEnabled());
+        assertFalse(users.get(1).isEmailVerified());
+
+        verify(usersResource).list();
+        verify(usersResource).get("1");
+        verify(usersResource).get("2");
+        verify(userResource, times(2)).roles();
+    }
+
+    private static List<UserRepresentation> getUserRepresentations() {
+        List<UserRepresentation> userRepresentations = new ArrayList<>();
+        UserRepresentation user1 = new UserRepresentation();
+        user1.setId("1");
+        user1.setUsername("user1");
+        user1.setEmail("email1@example.com");
+        user1.setFirstName("First1");
+        user1.setLastName("Last1");
+        user1.setEnabled(true);
+        user1.setEmailVerified(true);
+
+        UserRepresentation user2 = new UserRepresentation();
+        user2.setId("2");
+        user2.setUsername("user2");
+        user2.setEmail("email2@example.com");
+        user2.setFirstName("First2");
+        user2.setLastName("Last2");
+        user2.setEnabled(true);
+        user2.setEmailVerified(false);
+
+        userRepresentations.add(user1);
+        userRepresentations.add(user2);
+        return userRepresentations;
     }
 }

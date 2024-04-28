@@ -170,6 +170,13 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         userResource.update(userRepresentation);
     }
 
+    @Override
+    public List<UserDTO> getAllUsers() {
+        UsersResource usersResource = getUsersResource();
+        List<UserRepresentation> userRepresentations = usersResource.list();
+        return userRepresentations.stream().map(this::getUserDTO).collect(Collectors.toList());
+    }
+
 
     private UserDTO getUserDTO(UserRepresentation userRepresentation) {
         UserDTO userDTO = new UserDTO();
