@@ -96,7 +96,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
     @GetMapping("/email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(description = "Email of the user to be retrieved")
