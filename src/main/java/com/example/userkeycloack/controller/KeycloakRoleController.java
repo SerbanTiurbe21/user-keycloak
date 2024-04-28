@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/v1/roles")
@@ -20,8 +21,8 @@ public class KeycloakRoleController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @PutMapping("/assign-role/{userId}")
-    public ResponseEntity<Void> assignRole(@PathVariable String userId, @RequestParam String roleName){
+    public Mono<ResponseEntity<Void>> assignRole(@PathVariable String userId, @RequestParam String roleName){
         roleService.assignRole(userId,roleName);
-        return ResponseEntity.noContent().build();
+        return Mono.just(ResponseEntity.noContent().build());
     }
 }

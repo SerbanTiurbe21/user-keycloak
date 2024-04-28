@@ -25,7 +25,7 @@ class KeycloakRoleControllerTest {
 
         doNothing().when(roleService).assignRole(userId, roleName);
 
-        ResponseEntity<Void> response = keycloakRoleController.assignRole(userId, roleName);
+        ResponseEntity<Void> response = keycloakRoleController.assignRole(userId, roleName).block();
 
         ResponseEntity<Void> expected = ResponseEntity.noContent().build();
         assertEquals(expected.getStatusCode(), response.getStatusCode());
