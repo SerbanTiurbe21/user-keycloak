@@ -42,7 +42,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = UserRepresentation.class))),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-admin')")
     @GetMapping("/{userId}")
     public Mono<ResponseEntity<UserDTO>> getUser(
             @Parameter(description = "ID of the user to be retrieved")
@@ -55,7 +55,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User deleted successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-admin')")
     @DeleteMapping("/{userId}")
     public Mono<ResponseEntity<Void>> deleteUser(
             @Parameter(description = "ID of the user to be deleted")
@@ -69,7 +69,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User password updated successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer') or hasRole('ROLE_client-admin')")
     @PutMapping("/{userId}/password")
     public Mono<ResponseEntity<Void>> updatePassword(
             @Parameter(description = "ID of the user to be updated")
@@ -83,7 +83,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "Forgot password email sent successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-developer') or hasRole('ROLE_client-admin')")
     @PutMapping("/forgot-password")
     public Mono<ResponseEntity<Void>> forgotPassword(
             @Parameter(description = "Username of the user to send the forgot password email")
@@ -109,7 +109,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "204", description = "User updated successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-admin')")
     @PutMapping("/{userId}")
     public Mono<ResponseEntity<Void>> updateUser(
             @Parameter(description = "ID of the user to be updated")
@@ -125,7 +125,7 @@ public class KeycloakUserController {
             @ApiResponse(responseCode = "200", description = "Users retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "No users found")
     })
-    @PreAuthorize("hasRole('ROLE_client-hr')")
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-admin')")
     @GetMapping("/all")
     public Mono<ResponseEntity<List<UserDTO>>> getAllUsers(){
         return Mono.just(ResponseEntity.ok(keycloakUserService.getAllUsers()));
