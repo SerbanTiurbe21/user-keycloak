@@ -1,5 +1,6 @@
 package com.example.userkeycloack.controller;
 
+import com.example.userkeycloack.model.UpdateUserDTO;
 import com.example.userkeycloack.model.User;
 import com.example.userkeycloack.model.UserDTO;
 import com.example.userkeycloack.service.KeycloakUserService;
@@ -93,10 +94,10 @@ class KeycloakUserControllerTest {
     @Test
     void shouldUpdateUser() {
         final String userId = "userId";
-        final String lastName = "lastName";
-        doNothing().when(keycloakUserService).updateUser(userId, lastName);
-        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, lastName).block();
-        verify(keycloakUserService, times(1)).updateUser(userId, lastName);
+        final UpdateUserDTO updateUserDTO = UpdateUserDTO.builder().firstName("firstName").lastName("lastName").role("HR").username("username").email("email").build();
+        doNothing().when(keycloakUserService).updateUser(userId, updateUserDTO);
+        ResponseEntity<Void> response = keycloakUserController.updateUser(userId, updateUserDTO).block();
+        verify(keycloakUserService, times(1)).updateUser(userId, updateUserDTO);
         assertNull(response.getBody());
         assertEquals(204, response.getStatusCode().value());
     }

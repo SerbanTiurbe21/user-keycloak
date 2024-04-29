@@ -1,9 +1,7 @@
 package com.example.userkeycloack.service;
 
-import com.example.userkeycloack.exception.InvalidPasswordException;
-import com.example.userkeycloack.exception.UserCreationException;
-import com.example.userkeycloack.exception.UserDeletionException;
-import com.example.userkeycloack.exception.UserNotFoundException;
+import com.example.userkeycloack.exception.*;
+import com.example.userkeycloack.model.UpdateUserDTO;
 import com.example.userkeycloack.model.User;
 import com.example.userkeycloack.model.UserDTO;
 import jakarta.ws.rs.NotFoundException;
@@ -31,7 +29,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class KeycloakUserServiceTest {
@@ -54,7 +57,12 @@ class KeycloakUserServiceTest {
     private RoleMappingResource roleMappingResource;
     @Mock
     private RoleScopeResource roleScopeResource;
-
+    @Mock
+    private RolesResource rolesResource;
+    @Mock
+    private RoleResource roleResource;
+    @Mock
+    private RoleRepresentation roleRepresentation;
     @InjectMocks
     private KeycloakUserServiceImpl keycloakUserService;
 
@@ -359,21 +367,36 @@ class KeycloakUserServiceTest {
 
     @Test
     void shouldUpdateUserWhenUserExists() {
-        final String lastName = "UpdatedLastName";
+        final UpdateUserDTO updateUserDTO = UpdateUserDTO.builder()
+                .firstName("firstName")
+                .lastName("lastName")
+                .role("HR")
+                .username("username@example.com")
+                .email("username@example.com")
+                .build();
         final String userId = "existingUserId";
         final String newLastName = "UpdatedLastName";
 
-        UserResource userResource = mock(UserResource.class);
         UserRepresentation userRepresentation = new UserRepresentation();
-
         userRepresentation.setLastName("OriginalLastName");
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.get(userId)).thenReturn(userResource);
         when(userResource.toRepresentation()).thenReturn(userRepresentation);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
 
-        keycloakUserService.updateUser(userId, lastName);
+        when(realmResource.roles()).thenReturn(rolesResource);
+        when(rolesResource.get(updateUserDTO.getRole())).thenReturn(roleResource);
+        when(roleResource.toRepresentation()).thenReturn(roleRepresentation);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+
+        List<RoleRepresentation> roles = List.of(new RoleRepresentation(){{ setName("HR"); }});
+        when(roleScopeResource.listEffective()).thenReturn(roles);
+
+        keycloakUserService.updateUser(userId, updateUserDTO);
 
         userRepresentation.setLastName(newLastName);
 
@@ -383,16 +406,77 @@ class KeycloakUserServiceTest {
     }
 
     @Test
+    void shouldThrowInvalidRoleExceptionWhenUpdatingUser() {
+        final String userId = "existingUserId";
+        final String invalidRole = "MANAGER";
+        UpdateUserDTO updateUserDTO = UpdateUserDTO.builder()
+                .firstName("firstName")
+                .lastName("lastName")
+                .role(invalidRole)
+                .username("username@example.com")
+                .email("username@example.com")
+                .build();
+        UserRepresentation userRepresentation = new UserRepresentation();
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(userRepresentation);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(roleScopeResource.listEffective()).thenReturn(new ArrayList<>());
+
+        Exception exception = assertThrows(InvalidRoleException.class,
+                () -> keycloakUserService.updateUser(userId, updateUserDTO),
+                "Expected InvalidRoleException to be thrown");
+
+        assertEquals("Invalid role: " + invalidRole + ". Only DEVELOPER or HR roles are allowed.", exception.getMessage());
+        verify(userResource, never()).update(any(UserRepresentation.class));
+    }
+
+    @Test
+    void shouldThrowInvalidUpdateExceptionWhenUsernameAndEmailAreNotEqual() {
+        final String userId = "existingUserId";
+        final UpdateUserDTO updateUserDTO = UpdateUserDTO.builder()
+                    .firstName("firstName")
+                    .lastName("lastName")
+                    .role("HR")
+                    .username("username@example2.com")
+                    .email("username@example.com")
+                    .build();
+
+        UserRepresentation userRepresentation = new UserRepresentation();
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(userRepresentation);
+
+        Exception exception = assertThrows(InvalidUpdateException.class,
+                () -> keycloakUserService.updateUser(userId, updateUserDTO),
+                "Expected InvalidUpdateException to be thrown");
+
+        assertEquals("Username and email should be the same", exception.getMessage());
+        verify(userResource, never()).update(any(UserRepresentation.class));
+    }
+
+    @Test
     void shouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
         final String nonExistentUserId = "nonExistentUserId";
-        final String lastName = "UpdatedLastName";
+        final UpdateUserDTO updateUserDTO = UpdateUserDTO.builder()
+                .firstName("firstName")
+                .lastName("lastName")
+                .role("HR")
+                .username("username@example.com")
+                .email("username@example.com")
+                .build();
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
         when(usersResource.get(nonExistentUserId)).thenThrow(new NotFoundException("User with id: " + nonExistentUserId + " not found"));
 
         UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
-                () -> keycloakUserService.updateUser(nonExistentUserId, lastName),
+                () -> keycloakUserService.updateUser(nonExistentUserId, updateUserDTO),
                 "Expected updateUser to throw UserNotFoundException, but it did not");
 
         assertTrue(thrownException.getMessage().contains("User with id: " + nonExistentUserId + " not found"));
@@ -404,8 +488,13 @@ class KeycloakUserServiceTest {
     @Test
     void shouldThrowUserNotFoundExceptionWhenUserRepresentationIsNull() {
         final String userId = "existingUserIdButNoData";
-        final String lastName = "UpdatedLastName";
-
+        final UpdateUserDTO updateUserDTO = UpdateUserDTO.builder()
+                .firstName("firstName")
+                .lastName("lastName")
+                .role("HR")
+                .username("username@example.com")
+                .email("username@example.com")
+                .build();
         UserResource userResource = mock(UserResource.class);
 
         when(keycloak.realm(anyString())).thenReturn(realmResource);
@@ -414,7 +503,7 @@ class KeycloakUserServiceTest {
         when(userResource.toRepresentation()).thenReturn(null);
 
         UserNotFoundException thrownException = assertThrows(UserNotFoundException.class,
-                () -> keycloakUserService.updateUser(userId, lastName),
+                () -> keycloakUserService.updateUser(userId, updateUserDTO),
                 "Expected updateUser to throw UserNotFoundException because user representation is null");
 
         assertTrue(thrownException.getMessage().contains("User with id: " + userId + " not found"));

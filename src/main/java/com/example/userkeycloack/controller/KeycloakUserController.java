@@ -1,5 +1,6 @@
 package com.example.userkeycloack.controller;
 
+import com.example.userkeycloack.model.UpdateUserDTO;
 import com.example.userkeycloack.model.User;
 import com.example.userkeycloack.model.UserDTO;
 import com.example.userkeycloack.service.KeycloakUserService;
@@ -115,8 +116,8 @@ public class KeycloakUserController {
             @Parameter(description = "ID of the user to be updated")
             @PathVariable String userId,
             @Parameter(description = "Last name of the user.")
-            @RequestParam String lastName){
-        keycloakUserService.updateUser(userId, lastName);
+            @RequestBody UpdateUserDTO updateUserDTO){
+        keycloakUserService.updateUser(userId, updateUserDTO);
         return Mono.just(ResponseEntity.noContent().build());
     }
 

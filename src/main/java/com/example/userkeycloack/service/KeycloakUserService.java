@@ -1,5 +1,6 @@
 package com.example.userkeycloack.service;
 
+import com.example.userkeycloack.model.UpdateUserDTO;
 import com.example.userkeycloack.model.User;
 import com.example.userkeycloack.model.UserDTO;
 import org.keycloak.admin.client.resource.UserResource;
@@ -15,6 +16,6 @@ public interface KeycloakUserService {
     void forgotPassword(String username);
     void emailVerification(String userId);
     UserDTO getUserByEmail(String email);
-    void updateUser(String id, String lastName);
+    void updateUser(String id, UpdateUserDTO updateUserDTO);
     List<UserDTO> getAllUsers();
 }

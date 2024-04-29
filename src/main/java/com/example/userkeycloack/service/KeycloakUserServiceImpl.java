@@ -1,9 +1,7 @@
 package com.example.userkeycloack.service;
 
-import com.example.userkeycloack.exception.InvalidPasswordException;
-import com.example.userkeycloack.exception.UserCreationException;
-import com.example.userkeycloack.exception.UserDeletionException;
-import com.example.userkeycloack.exception.UserNotFoundException;
+import com.example.userkeycloack.exception.*;
+import com.example.userkeycloack.model.UpdateUserDTO;
 import com.example.userkeycloack.model.User;
 import com.example.userkeycloack.model.UserDTO;
 import jakarta.ws.rs.NotFoundException;
@@ -11,6 +9,7 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -19,16 +18,16 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
 public class KeycloakUserServiceImpl implements KeycloakUserService {
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
+    private static final String ROLE_DEVELOPER = "DEVELOPER";
+    private static final String ROLE_HR = "HR";
     private static final int STATUS_CREATED = 201;
     private final Keycloak keycloak;
     @Value("${keycloak.realm}")
@@ -154,7 +153,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     }
 
     @Override
-    public void updateUser(String id, String lastName) {
+    public void updateUser(String id, UpdateUserDTO updateUserDTO) {
         UserResource userResource;
         try {
             userResource = getUserResource(id);
@@ -166,8 +165,31 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         if (userRepresentation == null) {
             throw new UserNotFoundException("User with id: " + id + " not found");
         }
-        userRepresentation.setLastName(lastName);
+
+        if(!Objects.equals(updateUserDTO.getUsername(), updateUserDTO.getEmail())){
+            throw new InvalidUpdateException("Username and email should be the same");
+        }
+        userRepresentation.setUsername(updateUserDTO.getUsername());
+        userRepresentation.setEmail(updateUserDTO.getEmail());
+        userRepresentation.setFirstName(updateUserDTO.getFirstName());
+        userRepresentation.setLastName(updateUserDTO.getLastName());
+
+        List<RoleRepresentation> roles = userResource.roles().realmLevel().listEffective();
+        roles.forEach(role -> userResource.roles().realmLevel().remove(List.of(role)));
+
+        if(!updateUserDTO.getRole().equals(ROLE_DEVELOPER) && !updateUserDTO.getRole().equals(ROLE_HR)){
+            throw new InvalidRoleException("Invalid role: " + updateUserDTO.getRole() + ". Only DEVELOPER or HR roles are allowed.");
+        }
+
+        RolesResource rolesResource = getRolesResource();
+        RoleRepresentation representation = rolesResource.get(updateUserDTO.getRole()).toRepresentation();
+        userResource.roles().realmLevel().add(Collections.singletonList(representation));
+
         userResource.update(userRepresentation);
+    }
+
+    private RolesResource getRolesResource() {
+        return keycloak.realm(realm).roles();
     }
 
     @Override
