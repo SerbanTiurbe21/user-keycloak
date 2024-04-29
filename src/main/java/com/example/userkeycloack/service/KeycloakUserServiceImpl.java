@@ -192,7 +192,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         List<RoleRepresentation> allRoles = userResource.roles().realmLevel().listEffective();
         List<String> relevantRoles = allRoles.stream()
                 .map(RoleRepresentation::getName)
-                .filter(roleName -> roleName.equals("HR") || roleName.equals("DEVELOPER") || roleName.equals("ADMIN"))
+                .filter(roleName -> roleName.equals("HR") || roleName.equals("DEVELOPER") || roleName.equals("admin"))
                 .toList();
         if (!relevantRoles.isEmpty()) {
             userDTO.setRole(relevantRoles.get(0));
