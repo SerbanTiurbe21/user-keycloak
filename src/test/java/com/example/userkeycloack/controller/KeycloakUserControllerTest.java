@@ -110,4 +110,14 @@ class KeycloakUserControllerTest {
         assertNull(response.getBody());
         assertEquals(200, response.getStatusCode().value());
     }
+
+    @Test
+    void shouldGetAllUsersByRole() {
+        final String role = "role";
+        when(keycloakUserService.getAllUsersByRole(role)).thenReturn(null);
+        ResponseEntity<List<UserDTO>> response = keycloakUserController.getAllUsersByRole(role).block();
+        verify(keycloakUserService).getAllUsersByRole(role);
+        assertNull(response.getBody());
+        assertEquals(200, response.getStatusCode().value());
+    }
 }

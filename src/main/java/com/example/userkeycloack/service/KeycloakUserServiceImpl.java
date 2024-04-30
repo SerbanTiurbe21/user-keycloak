@@ -199,6 +199,19 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         return userRepresentations.stream().map(this::getUserDTO).collect(Collectors.toList());
     }
 
+    @Override
+    public List<UserDTO> getAllUsersByRole(String role) {
+        UsersResource usersResource = getUsersResource();
+        List<UserRepresentation> userRepresentations = usersResource.list();
+        List<UserDTO> userDTOS = new ArrayList<>();
+        for (UserRepresentation userRepresentation : userRepresentations) {
+            UserDTO userDTO = getUserDTO(userRepresentation);
+            if (userDTO.getRole().equals(role)) {
+                userDTOS.add(userDTO);
+            }
+        }
+        return userDTOS;
+    }
 
     private UserDTO getUserDTO(UserRepresentation userRepresentation) {
         UserDTO userDTO = new UserDTO();

@@ -564,4 +564,34 @@ class KeycloakUserServiceTest {
         userRepresentations.add(user2);
         return userRepresentations;
     }
+
+    @Test
+    void shouldGetAllUsersByRole() {
+        List<UserRepresentation> userRepresentations = getUserRepresentations();
+
+        when(keycloak.realm(anyString())).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.list()).thenReturn(userRepresentations);
+        when(usersResource.get("1")).thenReturn(userResource);
+        when(usersResource.get("2")).thenReturn(userResource);
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+
+        List<RoleRepresentation> roles = List.of(new RoleRepresentation(){{ setName("DEVELOPER"); }});
+        when(roleScopeResource.listEffective()).thenReturn(roles);
+
+        List<UserDTO> users = keycloakUserService.getAllUsersByRole("DEVELOPER");
+
+        assertNotNull(users);
+        assertEquals(2, users.size());
+        assertEquals("user1", users.get(0).getUsername());
+        assertEquals("user2", users.get(1).getUsername());
+        assertTrue(users.get(0).isEnabled());
+        assertFalse(users.get(1).isEmailVerified());
+
+        verify(usersResource).list();
+        verify(usersResource).get("1");
+        verify(usersResource).get("2");
+        verify(userResource, times(2)).roles();
+    }
 }

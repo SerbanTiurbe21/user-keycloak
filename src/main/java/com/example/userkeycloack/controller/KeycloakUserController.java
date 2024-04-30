@@ -131,4 +131,17 @@ public class KeycloakUserController {
     public Mono<ResponseEntity<List<UserDTO>>> getAllUsers(){
         return Mono.just(ResponseEntity.ok(keycloakUserService.getAllUsers()));
     }
+
+    @Operation(summary = "Get all users by role", description = "Retrieves all users by their role")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully", content = @Content(schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "404", description = "No users found")
+    })
+    @PreAuthorize("hasRole('ROLE_client-hr') or hasRole('ROLE_client-admin')")
+    @GetMapping("/role")
+    public Mono<ResponseEntity<List<UserDTO>>> getAllUsersByRole(
+            @Parameter(description = "Role of the users to be retrieved")
+            @RequestParam String role){
+        return Mono.just(ResponseEntity.ok(keycloakUserService.getAllUsersByRole(role)));
+    }
 }

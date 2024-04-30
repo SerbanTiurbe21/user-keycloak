@@ -18,4 +18,5 @@ public interface KeycloakUserService {
     UserDTO getUserByEmail(String email);
     void updateUser(String id, UpdateUserDTO updateUserDTO);
     List<UserDTO> getAllUsers();
+    List<UserDTO> getAllUsersByRole(String role);
 }
