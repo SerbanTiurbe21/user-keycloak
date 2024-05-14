@@ -430,7 +430,7 @@ class KeycloakUserServiceTest {
                 () -> keycloakUserService.updateUser(userId, updateUserDTO),
                 "Expected InvalidRoleException to be thrown");
 
-        assertEquals("Invalid role: " + invalidRole + ". Only DEVELOPER or HR roles are allowed.", exception.getMessage());
+        assertEquals("Invalid role: " + invalidRole + ". Only DEVELOPER, HR and admin roles are allowed.", exception.getMessage());
         verify(userResource, never()).update(any(UserRepresentation.class));
     }
 
