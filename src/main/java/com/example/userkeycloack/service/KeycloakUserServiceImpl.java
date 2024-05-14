@@ -28,6 +28,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     private static final String UPDATE_PASSWORD = "UPDATE_PASSWORD";
     private static final String ROLE_DEVELOPER = "DEVELOPER";
     private static final String ROLE_HR = "HR";
+    private static final String ROLE_ADMIN = "admin";
     private static final int STATUS_CREATED = 201;
     private final Keycloak keycloak;
     @Value("${keycloak.realm}")
@@ -182,8 +183,8 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         List<RoleRepresentation> roles = userResource.roles().realmLevel().listEffective();
         roles.forEach(role -> userResource.roles().realmLevel().remove(List.of(role)));
 
-        if(!updateUserDTO.getRole().equals(ROLE_DEVELOPER) && !updateUserDTO.getRole().equals(ROLE_HR)){
-            throw new InvalidRoleException("Invalid role: " + updateUserDTO.getRole() + ". Only DEVELOPER or HR roles are allowed.");
+        if(!updateUserDTO.getRole().equals(ROLE_DEVELOPER) && !updateUserDTO.getRole().equals(ROLE_HR) && !updateUserDTO.getRole().equals(ROLE_ADMIN)){
+            throw new InvalidRoleException("Invalid role: " + updateUserDTO.getRole() + ". Only DEVELOPER, HR and admin roles are allowed.");
         }
 
         RolesResource rolesResource = getRolesResource();
