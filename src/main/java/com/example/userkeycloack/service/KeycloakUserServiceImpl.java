@@ -169,6 +169,11 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         if(!Objects.equals(updateUserDTO.getUsername(), updateUserDTO.getEmail())){
             throw new InvalidUpdateException("Username and email should be the same");
         }
+
+        if (emailExists(updateUserDTO.getEmail(), id) || emailExists(updateUserDTO.getUsername(), id)) {
+            throw new InvalidUpdateException("Email already in use by another account");
+        }
+
         userRepresentation.setUsername(updateUserDTO.getUsername());
         userRepresentation.setEmail(updateUserDTO.getEmail());
         userRepresentation.setFirstName(updateUserDTO.getFirstName());
@@ -186,6 +191,12 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
         userResource.roles().realmLevel().add(Collections.singletonList(representation));
 
         userResource.update(userRepresentation);
+    }
+
+    private boolean emailExists(String email, String userIdExcluded) {
+        List<UserDTO> users = getAllUsers();
+        return users != null && users.stream()
+                .anyMatch(user -> user.getEmail() != null && user.getEmail().equalsIgnoreCase(email) && !user.getId().equals(userIdExcluded));
     }
 
     private RolesResource getRolesResource() {

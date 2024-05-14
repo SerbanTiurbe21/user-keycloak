@@ -51,4 +51,13 @@ public class UserExceptionHandler {
         );
         return new ResponseEntity<>(userException, userException.getHttpStatus());
     }
+
+    @ExceptionHandler(value = {InvalidUpdateException.class})
+    public ResponseEntity<Object> handleInvalidUpdateException(InvalidUpdateException invalidUpdateException) {
+        UserException userException = new UserException(
+                invalidUpdateException.getMessage(),
+                HttpStatus.BAD_REQUEST
+        );
+        return new ResponseEntity<>(userException, userException.getHttpStatus());
+    }
 }
